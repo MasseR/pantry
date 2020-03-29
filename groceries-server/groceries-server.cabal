@@ -20,13 +20,17 @@ library
   exposed-modules:     MyLib
                        Control.Monad.App
                        Data.Environment
+                       Data.Groceries
                        Database.Groceries
+                       Server
   default-extensions:  OverloadedStrings
   -- other-modules:
   -- other-extensions:
   build-depends:       base ^>=4.12.0.0
                      , beam-core
                      , beam-sqlite
+                     , warp
+                     , transformers
                      , sqlite-simple
                      , servant
                      , servant-server
