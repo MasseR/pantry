@@ -1,18 +1,22 @@
-{-# LANGUAGE ConstraintKinds  #-}
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE DeriveGeneric    #-}
-{-# LANGUAGE RankNTypes       #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE TypeOperators #-}
 module Server where
 
-import           Servant
-import           Servant.API.Generic        ((:-), ToServantApi, genericApi)
-import           Servant.Server.Generic     (AsServerT, genericServerT)
+import Servant
+import Servant.API.Generic
+       ((:-), ToServantApi, genericApi)
+import Servant.Server.Generic
+       (AsServerT, genericServerT)
 
-import           Network.Wai.Handler.Warp   (run)
+import Network.Wai.Handler.Warp
+       (run)
 
-import           Control.Monad.Trans.Except (ExceptT (..))
+import Control.Monad.Trans.Except
+       (ExceptT(..))
 
 type Constraint r m =
   ( MonadReader r m

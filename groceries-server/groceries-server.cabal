@@ -39,6 +39,9 @@ library
                      , lens
                      , generic-lens
                      , masse-prelude
+                     , genvalidity
+                     , genvalidity-text
+                     , QuickCheck
   hs-source-dirs:      src
   default-language:    Haskell2010
   mixins:            masse-prelude (MyPrelude as Prelude)
@@ -58,4 +61,21 @@ test-suite groceries-server-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             MyLibTest.hs
+  other-modules:       Test.Server
   build-depends:       base ^>=4.12.0.0
+                     , groceries-server
+                     , hspec
+                     , warp
+                     , transformers
+                     , lens
+                     , generic-lens
+                     , http-client
+                     , servant-client
+                     , servant-client-core
+                     , servant-server
+                     , QuickCheck
+                     , masse-prelude
+                     , sqlite-simple
+  mixins:            masse-prelude (MyPrelude as Prelude)
+                   , base (Prelude as BasePrelude)
+                   , base hiding (Prelude)

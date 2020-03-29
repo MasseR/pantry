@@ -1,4 +1,9 @@
 module Main (main) where
 
+import           Test.Hspec
+
+import qualified Test.Server as Server
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented."
+main = hspec
+  Server.spec
