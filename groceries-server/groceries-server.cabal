@@ -20,11 +20,14 @@ library
   exposed-modules:     MyLib
                        Control.Monad.App
                        Data.Environment
-                       Data.Groceries
+                       Data.Item
                        Data.User
                        Database.Groceries
+                       Database.Groceries.Migrate
+                       Database.Groceries.Items
                        Server
   default-extensions:  OverloadedStrings
+  ghc-options:         -Wall -Werror
   -- other-modules:
   -- other-extensions:
   build-depends:       base ^>=4.12.0.0
@@ -67,6 +70,7 @@ test-suite groceries-server-test
   other-modules:       Test.Server
                        Test.Database.Groceries
   default-extensions:  OverloadedStrings
+  ghc-options:         -Wall -Werror
   build-depends:       base ^>=4.12.0.0
                      , groceries-server
                      , hspec

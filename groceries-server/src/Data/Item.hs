@@ -3,16 +3,22 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
-module Data.Groceries
+module Data.Item
   ( ItemT(..)
   , Item
   , SqlSerial
+  , AddItem(..)
   )
   where
 
 import Database.Beam
 import Database.Beam.Backend.SQL.BeamExtensions
 
+import Data.GenValidity
+import Data.GenValidity.Text
+       ()
+import Data.GenValidity.Time
+       ()
 
 -- Testing out the model
 data ItemT f
@@ -40,3 +46,16 @@ deriving instance Beamable (PrimaryKey ItemT)
 deriving instance Show (PrimaryKey ItemT Identity)
 deriving instance Eq (PrimaryKey ItemT Identity)
 deriving instance Ord (PrimaryKey ItemT Identity)
+
+data AddItem
+  = AddItem { addItemName :: Text
+            , addItemQuantity :: Int64
+            , addItemWanted :: Int64
+            , addItemExpires :: Maybe Day
+            }
+  deriving (Show, Eq, Ord, Generic)
+
+instance Validity AddItem
+instance GenValid AddItem where
+  genValid = genValidStructurally
+  shrinkValid = shrinkValidStructurally

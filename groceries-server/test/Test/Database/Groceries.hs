@@ -10,13 +10,14 @@ import Test.Hspec
 import Test.QuickCheck
 import Test.QuickCheck.Monadic
 
-import Database.Beam
 import Database.SQLite.Simple
        (Connection, withConnection)
 
-import Data.Groceries
+import Data.Item
+
 -- System under test
-import Database.Groceries
+import Database.Groceries.Migrate (migrate)
+import Database.Groceries.Items (insertItem)
 
 withDB :: (Connection -> IO a) -> IO a
 withDB = withConnection ":memory:"

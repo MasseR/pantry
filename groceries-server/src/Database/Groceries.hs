@@ -1,4 +1,5 @@
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
@@ -9,13 +10,13 @@
 module Database.Groceries
   ( HasConnection(..)
   , runDB
-  , DB
+  , WithDB
   , db
-  , migrate
+  , migrationSteps
 
-  -- * Public interface
-  , insertItem
-  , AddItem(..)
+  , (^.)
+  , items
+  , users
   )
   where
 
@@ -23,19 +24,13 @@ import Database.Beam
        ( Database
        , DatabaseSettings
        , TableEntity
-       , default_
-       , insertExpressions
-       , runNoReturn
-       , val_
        )
 import Database.Beam.Migrate
 import Database.Beam.Query.DataTypes
 import Database.Beam.Sqlite.Connection
        ( Sqlite
        , SqliteM
-       , insertReturning
        , runBeamSqlite
-       , runInsertReturningList
        )
 import Database.Beam.Sqlite.Migrate
 import Database.Beam.Sqlite.Syntax
@@ -43,17 +38,13 @@ import Database.Beam.Sqlite.Syntax
 import Database.SQLite.Simple
        (Connection)
 
+import Control.Lens.TH (makeLenses)
 import Control.Lens
-       (Lens', lens, set, view)
+       (Lens', lens, set, view, (^.))
 
-import Data.Groceries
+import Data.Item
 import Data.User
 
-import Data.GenValidity
-import Data.GenValidity.Text
-       ()
-import Data.GenValidity.Time
-       ()
 
 class HasConnection a where
   {-# MINIMAL getConnection, setConnection | connection #-}
@@ -76,28 +67,25 @@ type WithDB r m = (MonadReader r m, HasConnection r, MonadIO m)
 runDB :: WithDB r m => SqliteM a -> m a
 runDB f = view connection >>= \conn -> liftIO (runBeamSqlite conn f)
 
-data DB f
-  = DB { _databaseItems :: f (TableEntity ItemT)
-       , _databaseUsers :: f (TableEntity UserT)
-       }
+data Groceries f
+  = Groceries { _items :: f (TableEntity ItemT)
+              , _users :: f (TableEntity UserT)
+              }
 
-deriving stock instance Generic (DB f)
-deriving anyclass instance (Database be) DB
+deriving stock instance Generic (Groceries f)
+deriving anyclass instance (Database be) Groceries
 
-db :: DatabaseSettings Sqlite DB
-db = unCheckDatabase (evaluateDatabase migration)
+makeLenses ''Groceries
 
-migrate :: WithDB r m => m ()
-migrate = void $ runDB $
-  runMigrationSteps 0 Nothing migration (\_n _comment -> executeMigration runNoReturn)
+db :: DatabaseSettings Sqlite Groceries
+db = unCheckDatabase (evaluateDatabase migrationSteps)
 
-
-migration :: MigrationSteps Sqlite () (CheckedDatabaseSettings Sqlite DB)
-migration = migrationStep "Initial commit" v1
+migrationSteps :: MigrationSteps Sqlite () (CheckedDatabaseSettings Sqlite Groceries)
+migrationSteps = migrationStep "Initial commit" v1
   where
-    v1 :: () -> Migration Sqlite (CheckedDatabaseSettings Sqlite DB)
-    v1 _ = DB <$> createTable "items" itemT
-              <*> createTable "users" userT
+    v1 :: () -> Migration Sqlite (CheckedDatabaseSettings Sqlite Groceries)
+    v1 _ = Groceries <$> createTable "items" itemT
+                     <*> createTable "users" userT
     itemT :: TableSchema Sqlite ItemT
     itemT = Item { _itemId = field "item_id" (DataType sqliteSerialType)
                  , _itemName = field "name" sqliteText
@@ -111,26 +99,3 @@ migration = migrationStep "Initial commit" v1
                  , _userPassword = field "password" sqliteBlob
                  }
 
-data AddItem
-  = AddItem { addItemName :: Text
-            , addItemQuantity :: Int64
-            , addItemWanted :: Int64
-            , addItemExpires :: Maybe Day
-            }
-  deriving (Show, Eq, Ord, Generic)
-
-instance Validity AddItem
-instance GenValid AddItem where
-  genValid = genValidStructurally
-  shrinkValid = shrinkValidStructurally
-
-insertItem :: WithDB r m => AddItem -> m (Maybe Item)
-insertItem AddItem{..} = fmap listToMaybe $ runDB $ runInsertReturningList $
-  insertReturning (_databaseItems db) $ insertExpressions $
-  let item = Item { _itemId = default_
-                  , _itemName = val_ addItemName
-                  , _itemQuantity = val_ addItemQuantity
-                  , _itemWanted = val_ addItemWanted
-                  , _itemExpires = val_ addItemExpires
-                  }
-  in [ item ]
