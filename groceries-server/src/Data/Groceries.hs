@@ -1,22 +1,25 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE StandaloneDeriving   #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-module Data.Groceries where
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeFamilies #-}
+module Data.Groceries
+  ( ItemT(..)
+  , Item
+  , SqlSerial
+  )
+  where
 
-import           Database.Beam
+import Database.Beam
+import Database.Beam.Backend.SQL.BeamExtensions
 
-data Quantity = Quantity
-              deriving (Eq, Ord, Show)
 
 -- Testing out the model
 data ItemT f
-  = Item { _itemId       :: Columnar f Int64
+  = Item { _itemId       :: Columnar f (SqlSerial Int)
          , _itemName     :: Columnar f Text
-         , _itemQuantity :: Columnar f Quantity
-         , _itemWanted   :: Columnar f Quantity
+         , _itemQuantity :: Columnar f Int64
+         , _itemWanted   :: Columnar f Int64
          , _itemExpires  :: Columnar f (Maybe Day)
          }
 
@@ -29,7 +32,7 @@ deriving instance Ord Item
 deriving instance Beamable ItemT
 
 instance Table ItemT where
-  data PrimaryKey ItemT f = ItemId (Columnar f Int64)
+  data PrimaryKey ItemT f = ItemId (Columnar f (SqlSerial Int))
   primaryKey = ItemId . _itemId
 
 deriving instance Generic (PrimaryKey ItemT f)

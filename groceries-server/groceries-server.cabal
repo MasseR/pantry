@@ -29,6 +29,7 @@ library
   build-depends:       base ^>=4.12.0.0
                      , beam-core
                      , beam-sqlite
+                     , beam-migrate
                      , warp
                      , transformers
                      , sqlite-simple
@@ -62,12 +63,13 @@ test-suite groceries-server-test
   hs-source-dirs:      test
   main-is:             MyLibTest.hs
   other-modules:       Test.Server
+                       Test.Database.Groceries
+  default-extensions:  OverloadedStrings
   build-depends:       base ^>=4.12.0.0
                      , groceries-server
                      , hspec
                      , warp
-                     , transformers
-                     , lens
+                     , transformers , lens
                      , generic-lens
                      , http-client
                      , servant-client
@@ -76,6 +78,8 @@ test-suite groceries-server-test
                      , QuickCheck
                      , masse-prelude
                      , sqlite-simple
+                     , beam-core
+                     , beam-sqlite
   mixins:            masse-prelude (MyPrelude as Prelude)
                    , base (Prelude as BasePrelude)
                    , base hiding (Prelude)
