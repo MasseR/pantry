@@ -1,10 +1,10 @@
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE StandaloneDeriving #-}
 module Database.Groceries
   ( HasConnection(..)
@@ -20,11 +20,23 @@ module Database.Groceries
   where
 
 import Database.Beam
-       (Database, DatabaseSettings, TableEntity, runNoReturn, insertExpressions, default_, val_)
+       ( Database
+       , DatabaseSettings
+       , TableEntity
+       , default_
+       , insertExpressions
+       , runNoReturn
+       , val_
+       )
 import Database.Beam.Migrate
 import Database.Beam.Query.DataTypes
 import Database.Beam.Sqlite.Connection
-       (Sqlite, SqliteM, runBeamSqlite, runInsertReturningList, insertReturning)
+       ( Sqlite
+       , SqliteM
+       , insertReturning
+       , runBeamSqlite
+       , runInsertReturningList
+       )
 import Database.Beam.Sqlite.Migrate
 import Database.Beam.Sqlite.Syntax
        (sqliteSerialType)
@@ -35,6 +47,12 @@ import Control.Lens
        (Lens', lens, set, view)
 
 import Data.Groceries
+
+import Data.GenValidity
+import Data.GenValidity.Text
+       ()
+import Data.GenValidity.Time
+       ()
 
 class HasConnection a where
   {-# MINIMAL getConnection, setConnection | connection #-}
@@ -90,6 +108,12 @@ data AddItem
             , addItemWanted :: Int64
             , addItemExpires :: Maybe Day
             }
+  deriving (Show, Eq, Ord, Generic)
+
+instance Validity AddItem
+instance GenValid AddItem where
+  genValid = genValidStructurally
+  shrinkValid = shrinkValidStructurally
 
 insertItem :: WithDB r m => AddItem -> m (Maybe Item)
 insertItem AddItem{..} = fmap listToMaybe $ runDB $ runInsertReturningList $

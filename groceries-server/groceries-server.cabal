@@ -42,6 +42,7 @@ library
                      , masse-prelude
                      , genvalidity
                      , genvalidity-text
+                     , genvalidity-time
                      , QuickCheck
   hs-source-dirs:      src
   default-language:    Haskell2010
@@ -80,6 +81,8 @@ test-suite groceries-server-test
                      , sqlite-simple
                      , beam-core
                      , beam-sqlite
+                     , genvalidity
+                     , genvalidity-hspec
   mixins:            masse-prelude (MyPrelude as Prelude)
                    , base (Prelude as BasePrelude)
                    , base hiding (Prelude)
