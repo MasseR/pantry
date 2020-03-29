@@ -47,6 +47,7 @@ import Control.Lens
        (Lens', lens, set, view)
 
 import Data.Groceries
+import Data.User
 
 import Data.GenValidity
 import Data.GenValidity.Text
@@ -75,8 +76,10 @@ type WithDB r m = (MonadReader r m, HasConnection r, MonadIO m)
 runDB :: WithDB r m => SqliteM a -> m a
 runDB f = view connection >>= \conn -> liftIO (runBeamSqlite conn f)
 
-newtype DB f
-  = DB { _databaseItems :: f (TableEntity ItemT) }
+data DB f
+  = DB { _databaseItems :: f (TableEntity ItemT)
+       , _databaseUsers :: f (TableEntity UserT)
+       }
 
 deriving stock instance Generic (DB f)
 deriving anyclass instance (Database be) DB
@@ -94,12 +97,18 @@ migration = migrationStep "Initial commit" v1
   where
     v1 :: () -> Migration Sqlite (CheckedDatabaseSettings Sqlite DB)
     v1 _ = DB <$> createTable "items" itemT
+              <*> createTable "users" userT
     itemT :: TableSchema Sqlite ItemT
     itemT = Item { _itemId = field "item_id" (DataType sqliteSerialType)
                  , _itemName = field "name" sqliteText
                  , _itemQuantity = field "quantity" sqliteBigInt
                  , _itemWanted = field "wanted" sqliteBigInt
                  , _itemExpires = field "expires" (maybeType date)
+                 }
+    userT :: TableSchema Sqlite UserT
+    userT = User { _userId = field "user_id" (DataType sqliteSerialType)
+                 , _userName = field "username" sqliteText
+                 , _userPassword = field "password" sqliteBlob
                  }
 
 data AddItem

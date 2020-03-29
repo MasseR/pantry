@@ -21,6 +21,7 @@ library
                        Control.Monad.App
                        Data.Environment
                        Data.Groceries
+                       Data.User
                        Database.Groceries
                        Server
   default-extensions:  OverloadedStrings
